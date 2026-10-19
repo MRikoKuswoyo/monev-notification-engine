@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monev MagangHub — Demo Notifikasi</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f1f5f9;color:#0f172a}
+  .wrap{max-width:900px;margin:0 auto;padding:24px;display:grid;gap:20px;grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.wrap{grid-template-columns:1fr}}
+  h1{grid-column:1/-1;margin:0;font-size:22px}
+  h1 small{display:block;font-size:14px;font-weight:400;color:#64748b;margin-top:4px}
+  .card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+  input[type=text],input[type=time],input[type=number]{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+  .check{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:14px}
+  .check input{width:18px;height:18px}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .presets button{padding:6px 10px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:999px;font-size:12px;cursor:pointer}
+  .presets button:hover{background:#e2e8f0}
+  .go{margin-top:18px;width:100%;padding:12px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  .go:hover{background:#1d4ed8}
+  .empty{color:#64748b;font-size:14px;text-align:center;padding:30px 10px}
+  .notif{border-left:5px solid #2563eb;background:#eff6ff;border-radius:10px;padding:16px}
+  .notif .cat{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;background:#2563eb;color:#fff;border-radius:999px;padding:2px 9px;margin-bottom:8px}
+  .notif h2{margin:0 0 6px;font-size:17px}
+  .notif p{margin:0 0 14px;line-height:1.5}
+  .notif button{border:0;background:#2563eb;color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;cursor:default}
+  .attendance_out{border-color:#7c3aed;background:#f5f3ff}.attendance_out .cat,.attendance_out button{background:#7c3aed}
+  .logbook{border-color:#059669;background:#ecfdf5}.logbook .cat,.logbook button{background:#059669}
+  .gamification{border-color:#d97706;background:#fffbeb}.gamification .cat,.gamification button{background:#d97706}
+  .urgent{border-color:#dc2626;background:#fef2f2}.urgent .cat,.urgent button{background:#dc2626}
+  pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;font-size:12px;overflow:auto;margin-top:14px}
+  .hint{font-size:12px;color:#64748b;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Monev MagangHub — Demo Notifikasi <small>Atur kondisi peserta magang, lalu lihat notifikasi yang dihasilkan engine.</small></h1>
+
+  <div class="card">
+    <label>Nama peserta</label>
+    <input type="text" id="nama" value="Riko">
+
+    <label>Jam sekarang (WIB)</label>
+    <input type="time" id="jam" value="07:45">
+    <div class="presets">
+      <button type="button" data-t="07:45">07:45 Pagi</button>
+      <button type="button" data-t="15:30">15:30 Logbook</button>
+      <button type="button" data-t="16:40">16:40 Pulang</button>
+      <button type="button" data-t="20:10">20:10 Malam</button>
+      <button type="button" data-t="23:10">23:10 Deadline</button>
+    </div>
+
+    <label>Deadline logbook (WIB)</label>
+    <input type="time" id="deadline" value="23:59">
+
+    <label>Streak (hari berturut-turut)</label>
+    <input type="number" id="streak" min="0" value="0">
+    <div class="hint">Isi 3, 5, atau 10 dan centang "logbook sudah diisi" untuk notifikasi gamifikasi.</div>
+
+    <div class="check"><input type="checkbox" id="checkedIn"><span>Sudah absen masuk</span></div>
+    <div class="check"><input type="checkbox" id="checkedOut"><span>Sudah absen pulang</span></div>
+    <div class="check"><input type="checkbox" id="logbookDone"><span>Logbook hari ini sudah diisi</span></div>
+
+    <button class="go" id="go">Lihat Notifikasi</button>
+  </div>
+
+  <div class="card">
+    <strong>Hasil</strong>
+    <div id="hasil"><div class="empty">Klik "Lihat Notifikasi" untuk mencoba.</div></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+document.querySelectorAll(".presets button").forEach(b => b.onclick = () => { $("jam").value = b.dataset.t; });
+
+$("go").onclick = async () => {
+  const d = new Date();
+  const tgl = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const now = new Date(`${tgl}T${$("jam").value}:00+07:00`).toISOString();
+  const body = {
+    now,
+    user: {
+      id: "demo", name: $("nama").value || "Peserta",
+      checkedIn: $("checkedIn").checked, checkedOut: $("checkedOut").checked,
+      logbookDone: $("logbookDone").checked, streak: Number($("streak").value) || 0,
+      streakNotified: false, logbookDeadline: $("deadline").value || "23:59"
+    }
+  };
+  try {
+    const r = await fetch("/api/notifications/next", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    const { notification: n } = await r.json();
+    const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    $("hasil").innerHTML = n
+      ? `<div class="notif ${n.category}"><span class="cat">${n.category}</span><h2>${esc(n.title)}</h2><p>${esc(n.message)}</p><button>${esc(n.action_button)}</button></div><pre>${esc(JSON.stringify(n,null,2))}</pre>`
+      : `<div class="empty">Tidak ada notifikasi untuk kondisi ini (null). Coba ubah jam atau status peserta.</div>`;
+  } catch (e) {
+    $("hasil").innerHTML = `<div class="empty">Gagal menghubungi server.</div>`;
+  }
+};
+</script>
+</body>
+</html>
