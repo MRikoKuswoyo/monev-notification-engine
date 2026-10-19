@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { query } from "@/lib/db";
 import { scheduleState, toSql } from "@/lib/schedule";
 import { getStatus, parseNow } from "@/lib/service";
 export const dynamic = "force-dynamic";
@@ -11,9 +11,9 @@ export async function POST(req) {
   const text = String(content || "").trim();
   if (text.length < 10) return Response.json({ error: "Logbook minimal 10 karakter ya." }, { status: 400 });
 
-  await pool.query(
-    `INSERT INTO logbooks (user_id, work_date, content, created_at) VALUES (?,?,?,?)
-     ON DUPLICATE KEY UPDATE content = VALUES(content)`,
+  await query(
+    `INSERT INTO logbooks (user_id, work_date, content, created_at) VALUES ($1,$2,$3,$4)
+     ON CONFLICT (user_id, work_date) DO UPDATE SET content = EXCLUDED.content`,
     [userId, s.dayKey, text.slice(0, 2000), toSql(now)]);
   return Response.json(await getStatus(userId, now));
 }

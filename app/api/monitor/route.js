@@ -1,9 +1,9 @@
-import { pool } from "@/lib/db";
+import { query } from "@/lib/db";
 import { getStatus, parseNow } from "@/lib/service";
 export const dynamic = "force-dynamic";
 export async function GET(req) {
   const now = parseNow(new URL(req.url).searchParams.get("now"));
-  const [users] = await pool.query("SELECT id FROM users ORDER BY id");
+  const users = await query("SELECT id FROM users ORDER BY id");
   const rows = [];
   let schedule = null;
   for (const u of users) {

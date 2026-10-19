@@ -68,7 +68,7 @@ export default function Dashboard() {
       setUsers(d.users);
       const saved = Number(localStorage.getItem("monev_user"));
       setUserId(d.users.find(u => u.id === saved)?.id ?? d.users[0]?.id ?? null);
-    }).catch(() => setFatal("Database belum siap. Pastikan MySQL Laragon menyala, lalu jalankan: npm run db:setup"));
+    }).catch(() => setFatal("Database belum siap. Cek DATABASE_URL di .env.local, lalu jalankan: npm run db:setup"));
   }, []);
 
   // ganti peserta / mode simulasi berubah -> muat ulang
